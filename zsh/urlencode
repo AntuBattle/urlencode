@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+
+# urlencode: percent‑encode everything except [A–Za–z0–9]
+# Usage:
+#   urlencode "string to encode"
+#   echo "string to encode" | urlencode
+urlencode() {
+  local input="$*" c hex output=""
+  local LANG=C
+
+  # Read from stdin if no args given
+  if (( $# == 0 )); then
+    IFS= read -r input
+  fi
+
+  # Split into one‐char lines, then process each
+  while IFS= read -r c; do
+    case $c in
+      [A-Za-z0-9])
+        output+="$c"
+        ;;
+      *)
+        # Use od to get the byte’s hex value, then prepend '%'
+        hex=$(printf '%s' "$c" | od -An -tx1 | tr ' ' '%' | tr -d '\n')
+        output+="$hex"
+        ;;
+    esac
+  done < <(printf '%s' "$input" | fold -w1)
+
+  print -rn -- "$output"
+  print     # newline
+}
+

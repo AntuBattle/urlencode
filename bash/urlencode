@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# urlencode: percent‑encode everything except [A–Za–z0–9]
+# Usage:
+#   urlencode "string to encode"
+#   echo "string to encode" | urlencode
+urlencode() {
+  local input c hex output=""
+  # If args given, join them; else read one line from stdin
+  if [ $# -gt 0 ]; then
+    input="$*"
+  else
+    IFS= read -r input
+  fi
+
+  # Process each byte
+  printf '%s' "$input" | fold -w1 | while IFS= read -r c; do
+    case $c in
+      [A-Za-z0-9])
+        # Alphanumerics stay unmodified
+        printf '%s' "$c"
+        ;;
+      *)
+        # Use od to get hex, then format as %HH
+        hex=$(printf '%s' "$c" | od -An -tx1 | tr ' ' '%' | tr -d '\n' | tr 'a-f' 'A-F')
+        printf '%s' "$hex"
+        ;;
+    esac
+  done
+  printf '\n'
+}
+
